@@ -59,7 +59,7 @@ export default function Metrics() {
                   {metric.id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {metric.value.toFixed(2)}
+                  {metric.value.toFixed(2) + " ppm"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {new Date(metric.timestamp).toLocaleDateString()}{" "}
