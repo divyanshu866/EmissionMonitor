@@ -43,7 +43,7 @@ export default function MetricsChart() {
   }
 
   return (
-    <div className="p-4">
+    <div className="py-4 px-2">
       <h2 className="text-xl font-bold mb-4">Emission Metrics</h2>
       <div className="h-96 w-full">
         {metrics.length === 0 ? (
@@ -52,7 +52,7 @@ export default function MetricsChart() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={metrics}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 20, right: 0, left: 0, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
@@ -63,7 +63,7 @@ export default function MetricsChart() {
                 label={{
                   value: "Timestamp",
                   position: "bottom",
-                  offset: 0,
+                  offset: 5,
                 }}
               />
               <YAxis
@@ -71,9 +71,9 @@ export default function MetricsChart() {
                   value: "Emission (ppm)",
                   angle: -90,
                   position: "left",
-                  offset: 0,
+                  offset: -6,
                 }}
-                tickFormatter={(value) => `${value.toFixed(2)} ppm`}
+                tickFormatter={(value) => `${value.toFixed(0)}`}
               />
               <Tooltip
                 contentStyle={{
