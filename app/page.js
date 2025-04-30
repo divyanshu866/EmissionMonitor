@@ -7,8 +7,8 @@ export default function Home() {
   return (
     <div>
       <MetricsChart />
-      <hr />
-      <MetricForm />
+
+      {/*<MetricForm />*/}
     </div>
   );
 }

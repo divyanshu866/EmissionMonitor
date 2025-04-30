@@ -15,11 +15,12 @@ export default function MetricsChart() {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [selectedRange, setSelectedRange] = useState('1h'); // State for selected time range
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch("/api/metrics");
+        const url = `/api/metrics${selectedRange ? `?range=${selectedRange}` : ''}`;
+        const response = await fetch(url);
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -32,7 +33,7 @@ export default function MetricsChart() {
     };
 
     fetchMetrics();
-  }, []);
+  }, [selectedRange]);
 
   if (loading) {
     return <div className="p-4 text-gray-600">Loading metrics...</div>;
@@ -94,6 +95,17 @@ export default function MetricsChart() {
             </LineChart>
           </ResponsiveContainer>
         )}
+      </div>
+      <hr />
+      <div>
+        {/* Add buttons to select time range */}
+        <div>
+          <button onClick={() => setSelectedRange('1h')}>Last 1 Hour</button>
+          <button onClick={() => setSelectedRange('5h')}>Last 5 Hours</button>
+          <button onClick={() => setSelectedRange('24h')}>Last 1 Day</button>
+          <button onClick={() => setSelectedRange('')}>All</button>
+        </div>
+        {/* Rest of your chart rendering logic */}
       </div>
     </div>
   );

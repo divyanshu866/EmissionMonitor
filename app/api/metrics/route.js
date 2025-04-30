@@ -41,64 +41,148 @@ Cq1EttvDL29pSNvI5VSgyaGMTLZE6SL+NU+66AwTzIEN4YSLmA==
 export async function POST(request) {
   let connection;
   try {
-    // Parse URL-encoded form data instead of JSON
-    const formData = await request.formData();
-    const data = {
-      api_key: formData.get("api_key"),
-      value: parseFloat(formData.get("value")),
-    };
+    // Parse JSON data from request body
+    const data = await request.json();
 
     // Validate API Key
     if (data.api_key !== process.env.API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Validate value
-    if (isNaN(data.value)) {
+    // Validate values array
+    if (!Array.isArray(data.values) || data.values.length === 0) {
       return NextResponse.json(
-        { error: "Invalid value - must be a number" },
-        { status: 400 }
+          { error: "Invalid values - must be a non-empty array" },
+          { status: 400 }
       );
     }
 
-    const timestamp = data.timestamp || new Date().toISOString();
+    // Validate and parse all values
+    const validValues = data.values.map(value => {
+      const parsed = parseFloat(value);
+      if (isNaN(parsed)) {
+        throw new Error("Invalid value in array - must contain only numbers");
+      }
+      return parsed;
+    });
 
     connection = await mysql.createConnection(dbConfig);
 
+    // Batch insert using a single query
     const [result] = await connection.execute(
-      "INSERT INTO metrics (value) VALUES (?)",
-      [data.value]
+        "INSERT INTO metrics (value) VALUES ?",
+        [validValues.map(v => [v])]
     );
 
     return NextResponse.json(
-      {
-        id: result.insertId,
-        message: "Metric added successfully",
-      },
-      { status: 201 }
+        {
+          insertedCount: result.affectedRows,
+          firstInsertId: result.insertId,
+          message: "Metrics batch inserted successfully",
+        },
+        { status: 201 }
     );
+
   } catch (error) {
     console.error("POST error:", error);
+    const status = error.message.includes("Invalid value") ? 400 : 500;
     return NextResponse.json(
-      { error: "Failed to create metric" },
-      { status: 500 }
+        { error: error.message || "Failed to create metrics" },
+        { status }
     );
   } finally {
     if (connection) await connection.end();
   }
 }
-export async function GET() {
+// export async function POST(request) {
+//   let connection;
+//   try {
+//     // Parse URL-encoded form data instead of JSON
+//     const formData = await request.formData();
+//     const data = {
+//       api_key: formData.get("api_key"),
+//       value: parseFloat(formData.get("value")),
+//     };
+//
+//     // Validate API Key
+//     if (data.api_key !== process.env.API_KEY) {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//     }
+//
+//     // Validate value
+//     if (isNaN(data.value)) {
+//       return NextResponse.json(
+//         { error: "Invalid value - must be a number" },
+//         { status: 400 }
+//       );
+//     }
+//
+//     const timestamp = data.timestamp || new Date().toISOString();
+//
+//     connection = await mysql.createConnection(dbConfig);
+//
+//     const [result] = await connection.execute(
+//       "INSERT INTO metrics (value) VALUES (?)",
+//       [data.value]
+//     );
+//
+//     return NextResponse.json(
+//       {
+//         id: result.insertId,
+//         message: "Metric added successfully",
+//       },
+//       { status: 201 }
+//     );
+//   } catch (error) {
+//     console.error("POST error:", error);
+//     return NextResponse.json(
+//       { error: "Failed to create metric" },
+//       { status: 500 }
+//     );
+//   } finally {
+//     if (connection) await connection.end();
+//   }
+// }
+export async function GET(request) {
   let connection;
   try {
-    // Create database connection
     connection = await mysql.createConnection(dbConfig);
 
-    // Query metrics data
-    const [rows] = await connection.execute(
-      "SELECT id, value, timestamp FROM metrics ORDER BY timestamp DESC"
-    );
+    // Extract the range query parameter
+    const { searchParams } = new URL(request.url);
+    const range = searchParams.get('range');
 
-    // Format timestamp to ISO string
+    let startDate;
+    const now = new Date(); // Current time in UTC
+
+    // Calculate start date based on the selected range
+    switch (range) {
+      case '1h':
+        startDate = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago
+        break;
+      case '5h':
+        startDate = new Date(now.getTime() - 5 * 60 * 60 * 1000); // 5 hours ago
+        break;
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+        break;
+      default:
+        startDate = null; // No range selected
+    }
+
+    // Build the SQL query based on the presence of a range
+    let query = "SELECT id, value, timestamp FROM metrics";
+    const params = [];
+    if (startDate) {
+      query += " WHERE timestamp >= ?";
+      params.push(startDate);
+    }
+    query += " ORDER BY timestamp DESC";
+
+    // Execute the query with parameters
+    const [rows] = await connection.execute(query, params);
+
+    // Format the timestamp to ISO string
     const formattedData = rows.map((row) => ({
       ...row,
       timestamp: new Date(row.timestamp).toISOString(),
@@ -108,11 +192,10 @@ export async function GET() {
   } catch (error) {
     console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch metrics" },
-      { status: 500 }
+        { error: "Failed to fetch metrics" },
+        { status: 500 }
     );
   } finally {
-    // Close connection if it exists
     if (connection) await connection.end();
   }
 }
