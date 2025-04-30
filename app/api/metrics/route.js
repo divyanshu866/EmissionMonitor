@@ -41,10 +41,20 @@ Cq1EttvDL29pSNvI5VSgyaGMTLZE6SL+NU+66AwTzIEN4YSLmA==
 export async function POST(request) {
   let connection;
   try {
-    const data = await request.json();
-    console.log(data);
-    // Validate input
-    if (typeof data.value !== "number" || isNaN(data.value)) {
+    // Parse URL-encoded form data instead of JSON
+    const formData = await request.formData();
+    const data = {
+      api_key: formData.get("api_key"),
+      value: parseFloat(formData.get("value")),
+    };
+
+    // Validate API Key
+    if (data.api_key !== process.env.API_KEY) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Validate value
+    if (isNaN(data.value)) {
       return NextResponse.json(
         { error: "Invalid value - must be a number" },
         { status: 400 }
