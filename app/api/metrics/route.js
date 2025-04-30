@@ -42,45 +42,46 @@ Cq1EttvDL29pSNvI5VSgyaGMTLZE6SL+NU+66AwTzIEN4YSLmA==
 export async function POST(request) {
   let connection;
   try {
-    const payload = await request.json();
-    console.log("Received payload1:");
-    console.log("Received payload:", payload);
+    // Parse URL-encoded form data instead of JSON
+    const formData = await request.formData();
+    const data = {
+      api_key: formData.get("api_key"),
+      value: parseFloat(formData.get("value")),
+    };
 
-    // Verify API key
-    if (payload.api_key !== process.env.API_KEY) {
+    // Validate API Key
+    if (data.api_key !== process.env.API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Validate payload
-    if (!payload.values || !Array.isArray(payload.values)) {
+    // Validate value
+    if (isNaN(data.value)) {
       return NextResponse.json(
-        { error: "Invalid payload format" },
+        { error: "Invalid value - must be a number" },
         { status: 400 }
       );
     }
 
+    const timestamp = data.timestamp || new Date().toISOString();
+    console.log("Timestamp:", timestamp);
     connection = await mysql.createConnection(dbConfig);
 
-    // Prepare values for batch insert
-    const valuesToInsert = payload.values.map((value) => [value]);
-
-    // Insert all values in a single query
     const [result] = await connection.execute(
-      "INSERT INTO Metrics (value) VALUES ?",
-      [valuesToInsert]
+      "INSERT INTO metrics (value) VALUES (?)",
+      [data.value]
     );
 
     return NextResponse.json(
       {
-        message: "Metrics inserted successfully",
-        insertedCount: result.affectedRows,
+        id: result.insertId,
+        message: "Metric added successfully",
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Database error:", error);
+    console.error("POST error:", error);
     return NextResponse.json(
-      { error: "Failed to insert metrics" },
+      { error: "Failed to create metric" },
       { status: 500 }
     );
   } finally {
