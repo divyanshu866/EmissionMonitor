@@ -38,56 +38,56 @@ Cq1EttvDL29pSNvI5VSgyaGMTLZE6SL+NU+66AwTzIEN4YSLmA==
   },
   connectTimeout: 10000, // 10 seconds timeout
 };
+
 export async function POST(request) {
   let connection;
   try {
-    const data = await request.json();
+    const payload = await request.json();
+    console.log("Received payload1:");
+    console.log("Received payload:", payload);
 
-    // API Key check
-    if (data.api_key !== process.env.API_KEY) {
+    // Verify API key
+    if (payload.api_key !== process.env.API_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Validate values
-    if (!Array.isArray(data.values) || data.values.length === 0) {
+    // Validate payload
+    if (!payload.values || !Array.isArray(payload.values)) {
       return NextResponse.json(
-        { error: "Invalid values array" },
+        { error: "Invalid payload format" },
         { status: 400 }
       );
     }
 
-    const validValues = data.values.map((v) => {
-      const parsed = parseFloat(v);
-      if (isNaN(parsed)) throw new Error("Values must be numbers");
-      return parsed;
-    });
-
-    // Connect to DB
     connection = await mysql.createConnection(dbConfig);
 
-    // Batch insert
+    // Prepare values for batch insert
+    const valuesToInsert = payload.values.map((value) => [value]);
+
+    // Insert all values in a single query
     const [result] = await connection.execute(
-      "INSERT INTO metrics (value) VALUES ?",
-      [validValues.map((v) => [v])]
+      "INSERT INTO Metrics (value) VALUES ?",
+      [valuesToInsert]
     );
 
     return NextResponse.json(
       {
+        message: "Metrics inserted successfully",
         insertedCount: result.affectedRows,
-        message: "Data inserted successfully",
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("POST Error Details:", error.message, error.stack); // Improved logging
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Database error. Check logs." }, // Generic message for security
+      { error: "Failed to insert metrics" },
       { status: 500 }
     );
   } finally {
     if (connection) await connection.end();
   }
 }
+
 // export async function POST(request) {
 //   let connection;
 //   try {
