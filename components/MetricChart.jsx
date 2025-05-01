@@ -63,7 +63,7 @@ export default function MetricsChart() {
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(timeStr) =>
-                  new Date(timeStr).toLocaleDateString()
+                  new Date(timeStr).toLocaleTimeString()
                 }
                 label={{
                   value: "Timestamp",
