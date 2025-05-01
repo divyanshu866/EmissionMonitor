@@ -16,6 +16,7 @@ export default function MetricsChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRange, setSelectedRange] = useState("1h"); // State for selected time range
+  const [refresh, setRefresh] = useState(1); // State for selected time range
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -36,7 +37,7 @@ export default function MetricsChart() {
     };
 
     fetchMetrics();
-  }, [selectedRange]);
+  }, [selectedRange, refresh]);
 
   if (loading) {
     return <div className="p-4 text-gray-600">Loading metrics...</div>;
@@ -108,34 +109,42 @@ export default function MetricsChart() {
           <button
             className={`${
               selectedRange == "1h" ? "bg-slate-500" : "bg-slate-800"
-            } cursor-pointer p-2 border-1 rounded-2xl`}
+            } cursor-pointer hover:bg-slate-700 p-2 border-1 rounded-xl`}
             onClick={() => setSelectedRange("1h")}
           >
-            Last 1 Hour
+            1 Hour
           </button>
           <button
             className={`${
               selectedRange == "5h" ? "bg-slate-500" : "bg-slate-800"
-            } cursor-pointer p-2 border-1 rounded-2xl`}
+            } cursor-pointer hover:bg-slate-700 p-2 border-1 rounded-xl`}
             onClick={() => setSelectedRange("5h")}
           >
-            Last 5 Hours
+            5 Hours
           </button>
           <button
             className={`${
               selectedRange == "24h" ? "bg-slate-500" : "bg-slate-800"
-            } cursor-pointer p-2 border-1 rounded-2xl`}
+            } cursor-pointer hover:bg-slate-700 p-2 border-1 rounded-xl`}
             onClick={() => setSelectedRange("24h")}
           >
-            Last 1 Day
+            1 Day
           </button>
           <button
             className={`${
               selectedRange == "" ? "bg-slate-500" : "bg-slate-800"
-            } cursor-pointer p-2 border-1 rounded-2xl`}
+            } cursor-pointer hover:bg-slate-700 p-2 border-1 rounded-xl`}
             onClick={() => setSelectedRange("")}
           >
-            All
+            All Time
+          </button>
+        </div>
+        <div className="w-full flex justify-center items-center gap-5 my-4">
+          <button
+            className={`bg-blue-900 cursor-pointer hover:bg-slate-700 px-5 py-7 border-1 rounded-full`}
+            onClick={() => setRefresh((prev) => prev + 1)}
+          >
+            Reset
           </button>
         </div>
         {/* Rest of your chart rendering logic */}
