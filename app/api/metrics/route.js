@@ -89,55 +89,6 @@ export async function POST(request) {
   }
 }
 
-// export async function POST(request) {
-//   let connection;
-//   try {
-//     // Parse URL-encoded form data instead of JSON
-//     const formData = await request.formData();
-//     const data = {
-//       api_key: formData.get("api_key"),
-//       value: parseFloat(formData.get("value")),
-//     };
-//
-//     // Validate API Key
-//     if (data.api_key !== process.env.API_KEY) {
-//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//     }
-//
-//     // Validate value
-//     if (isNaN(data.value)) {
-//       return NextResponse.json(
-//         { error: "Invalid value - must be a number" },
-//         { status: 400 }
-//       );
-//     }
-//
-//     const timestamp = data.timestamp || new Date().toISOString();
-//
-//     connection = await mysql.createConnection(dbConfig);
-//
-//     const [result] = await connection.execute(
-//       "INSERT INTO metrics (value) VALUES (?)",
-//       [data.value]
-//     );
-//
-//     return NextResponse.json(
-//       {
-//         id: result.insertId,
-//         message: "Metric added successfully",
-//       },
-//       { status: 201 }
-//     );
-//   } catch (error) {
-//     console.error("POST error:", error);
-//     return NextResponse.json(
-//       { error: "Failed to create metric" },
-//       { status: 500 }
-//     );
-//   } finally {
-//     if (connection) await connection.end();
-//   }
-// }
 export async function GET(request) {
   let connection;
   try {
@@ -172,7 +123,7 @@ export async function GET(request) {
       query += " WHERE timestamp >= ?";
       params.push(startDate);
     }
-    query += " ORDER BY timestamp DESC";
+    query += " ORDER BY timestamp ASC";
 
     // Execute the query with parameters
     const [rows] = await connection.execute(query, params);
