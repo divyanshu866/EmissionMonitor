@@ -15,11 +15,14 @@ export default function MetricsChart() {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedRange, setSelectedRange] = useState('1h'); // State for selected time range
+  const [selectedRange, setSelectedRange] = useState("1h"); // State for selected time range
+
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const url = `/api/metrics${selectedRange ? `?range=${selectedRange}` : ''}`;
+        const url = `/api/metrics${
+          selectedRange ? `?range=${selectedRange}` : ""
+        }`;
         const response = await fetch(url);
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -80,6 +83,8 @@ export default function MetricsChart() {
                 contentStyle={{
                   backgroundColor: "#fff",
                   border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  color: "#2865eb",
                 }}
                 formatter={(value) => [`${value.toFixed(2)} ppm`, "Value"]}
                 labelFormatter={(label) => new Date(label).toLocaleString()}
@@ -99,11 +104,39 @@ export default function MetricsChart() {
       <hr />
       <div>
         {/* Add buttons to select time range */}
-        <div>
-          <button onClick={() => setSelectedRange('1h')}>Last 1 Hour</button>
-          <button onClick={() => setSelectedRange('5h')}>Last 5 Hours</button>
-          <button onClick={() => setSelectedRange('24h')}>Last 1 Day</button>
-          <button onClick={() => setSelectedRange('')}>All</button>
+        <div className="w-full flex justify-center items-center gap-5 my-4">
+          <button
+            className={`${
+              selectedRange == "1h" ? "bg-slate-500" : "bg-slate-800"
+            } cursor-pointer p-2 border-1 rounded-2xl`}
+            onClick={() => setSelectedRange("1h")}
+          >
+            Last 1 Hour
+          </button>
+          <button
+            className={`${
+              selectedRange == "5h" ? "bg-slate-500" : "bg-slate-800"
+            } cursor-pointer p-2 border-1 rounded-2xl`}
+            onClick={() => setSelectedRange("5h")}
+          >
+            Last 5 Hours
+          </button>
+          <button
+            className={`${
+              selectedRange == "24h" ? "bg-slate-500" : "bg-slate-800"
+            } cursor-pointer p-2 border-1 rounded-2xl`}
+            onClick={() => setSelectedRange("24h")}
+          >
+            Last 1 Day
+          </button>
+          <button
+            className={`${
+              selectedRange == "" ? "bg-slate-500" : "bg-slate-800"
+            } cursor-pointer p-2 border-1 rounded-2xl`}
+            onClick={() => setSelectedRange("")}
+          >
+            All
+          </button>
         </div>
         {/* Rest of your chart rendering logic */}
       </div>
