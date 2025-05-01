@@ -48,7 +48,7 @@ export default function MetricsChart() {
   }
 
   return (
-    <div className="py-4 px-2">
+    <div className="py-4 pl-2 pr-4">
       <h2 className="text-3xl mx-6 mt-4 font-bold mb-4">Emission Metrics</h2>
       <div className="h-96 w-full">
         {metrics.length === 0 ? (
