@@ -49,7 +49,7 @@ export default function MetricsChart() {
 
   return (
     <div className="py-4 px-2">
-      <h2 className="text-xl font-bold mb-4">Emission Metrics</h2>
+      <h2 className="text-3xl mx-6 mt-4 font-bold mb-4">Emission Metrics</h2>
       <div className="h-96 w-full">
         {metrics.length === 0 ? (
           <div className="p-4 text-center text-gray-500">No metrics found</div>
@@ -102,7 +102,7 @@ export default function MetricsChart() {
           </ResponsiveContainer>
         )}
       </div>
-      <hr />
+      <hr className="mt-4 mb-6" />
       <div>
         {/* Add buttons to select time range */}
         <div className="w-full flex justify-center items-center gap-5 my-4">

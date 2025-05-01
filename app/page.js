@@ -6,9 +6,8 @@ import MetricsChart from "@/components/MetricChart";
 export default function Home() {
   return (
     <div>
+      {/* Display Chart component here*/}
       <MetricsChart />
-
-      {/*<MetricForm />*/}
     </div>
   );
 }
