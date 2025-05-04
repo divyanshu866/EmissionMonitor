@@ -49,7 +49,6 @@ export async function POST(request) {
     // Extract and validate all "valueX" parameters
     for (const [key, value] of formData.entries()) {
       if (/^value\d+$/.test(key)) {
-        // Match keys like value1, value2, etc.
         const num = parseFloat(value);
         if (isNaN(num)) {
           return NextResponse.json(
@@ -66,7 +65,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check for at least one valid value
     if (values.length === 0) {
       return NextResponse.json(
         { error: "No valid values provided" },
@@ -76,25 +74,30 @@ export async function POST(request) {
 
     connection = await mysql.createConnection(dbConfig);
 
-    // Batch insert all values
-    const placeholders = values.map(() => "?").join(", ");
-    const [result] = await connection.execute(
-      `INSERT INTO metrics (value) VALUES ${placeholders}`,
-      values
-    );
+    // Fixed SQL syntax for multiple values
+    const placeholders = values.map(() => "(?)").join(", ");
+    const query = `INSERT INTO metrics (value) VALUES ${placeholders}`;
+
+    const [result] = await connection.execute(query, values);
 
     return NextResponse.json(
       {
-        insertedCount: values.length,
+        insertedCount: result.affectedRows, // Use affectedRows instead of values.length
         firstInsertId: result.insertId,
-        message: `${values.length} metrics added successfully`,
+        message: `${result.affectedRows} metrics added successfully`,
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("POST error:", error);
     return NextResponse.json(
-      { error: "Failed to create metrics" },
+      {
+        error: "Failed to create metrics",
+        // Only include details in development
+        ...(process.env.NODE_ENV === "development" && {
+          details: error.message,
+        }),
+      },
       { status: 500 }
     );
   } finally {
