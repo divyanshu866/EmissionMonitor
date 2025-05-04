@@ -101,7 +101,7 @@ export default function MetricsChart() {
                     const currentValue = entry.value;
                     const nextValue = metrics[index + 1].value;
                     const color =
-                      currentValue > 300 || nextValue > 300 ? "red" : "#2563eb";
+                      currentValue > 500 || nextValue > 500 ? "red" : "#2563eb";
                     const startOffset = (index / (metrics.length - 1)) * 100;
                     const endOffset =
                       ((index + 1) / (metrics.length - 1)) * 100;
@@ -157,7 +157,7 @@ export default function MetricsChart() {
                     cx={cx}
                     cy={cy}
                     r={4}
-                    fill={payload.value > 300 ? "red" : "#2563eb"}
+                    fill={payload.value > 500 ? "red" : "#2563eb"}
                     stroke="none"
                   />
                 )}
