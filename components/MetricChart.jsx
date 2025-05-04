@@ -39,6 +39,8 @@ export default function MetricsChart() {
         const data = await response.json();
         alert(data.message);
         // Optional: Refresh your metrics data here if needed
+        setSelectedRange("1h");
+        setRefresh((prev) => prev + 1);
       } catch (error) {
         console.error("Reset failed:", error);
         alert("Failed to reset metrics. Please check the console.");
