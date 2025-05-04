@@ -59,17 +59,45 @@ export default function MetricsChart() {
               data={metrics}
               margin={{ top: 20, right: 0, left: 0, bottom: 20 }}
             >
+              <defs>
+                <linearGradient
+                  id="colorGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
+                  {metrics.map((entry, index) => {
+                    if (index >= metrics.length - 1) return null;
+                    const currentValue = entry.value;
+                    const nextValue = metrics[index + 1].value;
+                    const color =
+                      currentValue > 300 || nextValue > 300 ? "red" : "#2563eb";
+                    const startOffset = (index / (metrics.length - 1)) * 100;
+                    const endOffset =
+                      ((index + 1) / (metrics.length - 1)) * 100;
+                    return [
+                      <stop
+                        key={`start-${index}`}
+                        offset={`${startOffset}%`}
+                        stopColor={color}
+                      />,
+                      <stop
+                        key={`end-${index}`}
+                        offset={`${endOffset}%`}
+                        stopColor={color}
+                      />,
+                    ];
+                  })}
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={(timeStr) =>
                   new Date(timeStr).toLocaleTimeString()
                 }
-                label={{
-                  value: "Timestamp",
-                  position: "bottom",
-                  offset: 5,
-                }}
+                label={{ value: "Timestamp", position: "bottom", offset: 5 }}
               />
               <YAxis
                 label={{
@@ -93,9 +121,17 @@ export default function MetricsChart() {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#2563eb"
+                stroke="url(#colorGradient)"
                 strokeWidth={2}
-                dot={{ r: 4 }}
+                dot={({ cx, cy, payload }) => (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={4}
+                    fill={payload.value > 300 ? "red" : "#2563eb"}
+                    stroke="none"
+                  />
+                )}
                 activeDot={{ r: 8 }}
               />
             </LineChart>
