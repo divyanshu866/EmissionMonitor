@@ -39,120 +39,121 @@ Cq1EttvDL29pSNvI5VSgyaGMTLZE6SL+NU+66AwTzIEN4YSLmA==
   connectTimeout: 10000, // 10 seconds timeout
 };
 
-export async function POST(request) {
-  let connection;
-  try {
-    const formData = await request.formData();
-    const apiKey = formData.get("api_key");
-    const values = [];
-
-    // Extract and validate all "valueX" parameters
-    for (const [key, value] of formData.entries()) {
-      if (/^value\d+$/.test(key)) {
-        const num = parseFloat(value);
-        if (isNaN(num)) {
-          return NextResponse.json(
-            { error: `Invalid numeric value for ${key}` },
-            { status: 400 }
-          );
-        }
-        values.push(num);
-      }
-    }
-
-    // Validate API Key
-    if (apiKey !== process.env.API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (values.length === 0) {
-      return NextResponse.json(
-        { error: "No valid values provided" },
-        { status: 400 }
-      );
-    }
-
-    connection = await mysql.createConnection(dbConfig);
-
-    // Fixed SQL syntax for multiple values
-    const placeholders = values.map(() => "(?)").join(", ");
-    const query = `INSERT INTO metrics (value) VALUES ${placeholders}`;
-
-    const [result] = await connection.execute(query, values);
-
-    return NextResponse.json(
-      {
-        insertedCount: result.affectedRows, // Use affectedRows instead of values.length
-        firstInsertId: result.insertId,
-        message: `${result.affectedRows} metrics added successfully`,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("POST error:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to create metrics",
-        // Only include details in development
-        ...(process.env.NODE_ENV === "development" && {
-          details: error.message,
-        }),
-      },
-      { status: 500 }
-    );
-  } finally {
-    if (connection) await connection.end();
-  }
-}
 // export async function POST(request) {
 //   let connection;
 //   try {
-//     // Parse URL-encoded form data instead of JSON
 //     const formData = await request.formData();
-//     const data = {
-//       api_key: formData.get("api_key"),
-//       value: parseFloat(formData.get("value")),
-//     };
+//     const apiKey = formData.get("api_key");
+//     const values = [];
+
+//     // Extract and validate all "valueX" parameters
+//     for (const [key, value] of formData.entries()) {
+//       if (/^value\d+$/.test(key)) {
+//         const num = parseFloat(value);
+//         if (isNaN(num)) {
+//           return NextResponse.json(
+//             { error: `Invalid numeric value for ${key}` },
+//             { status: 400 }
+//           );
+//         }
+//         values.push(num);
+//       }
+//     }
 
 //     // Validate API Key
-//     if (data.api_key !== process.env.API_KEY) {
+//     if (apiKey !== process.env.API_KEY) {
 //       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 //     }
 
-//     // Validate value
-//     if (isNaN(data.value)) {
+//     if (values.length === 0) {
 //       return NextResponse.json(
-//         { error: "Invalid value - must be a number" },
+//         { error: "No valid values provided" },
 //         { status: 400 }
 //       );
 //     }
 
-//     const timestamp = data.timestamp || new Date().toISOString();
-//     console.log("Timestamp:", timestamp);
 //     connection = await mysql.createConnection(dbConfig);
 
-//     const [result] = await connection.execute(
-//       "INSERT INTO metrics (value) VALUES (?)",
-//       [data.value]
-//     );
+//     // Fixed SQL syntax for multiple values
+//     const placeholders = values.map(() => "(?)").join(", ");
+//     const query = `INSERT INTO metrics (value) VALUES ${placeholders}`;
+
+//     const [result] = await connection.execute(query, values);
 
 //     return NextResponse.json(
 //       {
-//         id: result.insertId,
-//         message: "Metric added successfully",
+//         insertedCount: result.affectedRows, // Use affectedRows instead of values.length
+//         firstInsertId: result.insertId,
+//         message: `${result.affectedRows} metrics added successfully`,
 //       },
 //       { status: 201 }
 //     );
 //   } catch (error) {
 //     console.error("POST error:", error);
 //     return NextResponse.json(
-//       { error: "Failed to create metric" },
+//       {
+//         error: "Failed to create metrics",
+//         // Only include details in development
+//         ...(process.env.NODE_ENV === "development" && {
+//           details: error.message,
+//         }),
+//       },
 //       { status: 500 }
 //     );
 //   } finally {
 //     if (connection) await connection.end();
 //   }
 // }
+
+export async function POST(request) {
+  let connection;
+  try {
+    // Parse URL-encoded form data instead of JSON
+    const formData = await request.formData();
+    const data = {
+      api_key: formData.get("api_key"),
+      value: parseFloat(formData.get("value")),
+    };
+
+    // Validate API Key
+    if (data.api_key !== process.env.API_KEY) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Validate value
+    if (isNaN(data.value)) {
+      return NextResponse.json(
+        { error: "Invalid value - must be a number" },
+        { status: 400 }
+      );
+    }
+
+    const timestamp = data.timestamp || new Date().toISOString();
+    console.log("Timestamp:", timestamp);
+    connection = await mysql.createConnection(dbConfig);
+
+    const [result] = await connection.execute(
+      "INSERT INTO metrics (value) VALUES (?)",
+      [data.value]
+    );
+
+    return NextResponse.json(
+      {
+        id: result.insertId,
+        message: "Metric added successfully",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("POST error:", error);
+    return NextResponse.json(
+      { error: "Failed to create metric" },
+      { status: 500 }
+    );
+  } finally {
+    if (connection) await connection.end();
+  }
+}
 
 export async function GET(request) {
   let connection;
