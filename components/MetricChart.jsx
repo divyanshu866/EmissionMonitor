@@ -17,7 +17,34 @@ export default function MetricsChart() {
   const [error, setError] = useState(null);
   const [selectedRange, setSelectedRange] = useState("1h"); // State for selected time range
   const [refresh, setRefresh] = useState(1); // State for selected time range
+  const handleReset = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all metrics? This cannot be undone!"
+      )
+    ) {
+      try {
+        const response = await fetch("/api/truncate-metrics", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
+          },
+        });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        alert(data.message);
+        // Optional: Refresh your metrics data here if needed
+      } catch (error) {
+        console.error("Reset failed:", error);
+        alert("Failed to reset metrics. Please check the console.");
+      }
+    }
+  };
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -179,6 +206,12 @@ export default function MetricsChart() {
           <button
             className={`bg-blue-900 cursor-pointer hover:bg-slate-700 px-5 py-7 border-1 rounded-full`}
             onClick={() => setRefresh((prev) => prev + 1)}
+          >
+            Refresh
+          </button>
+          <button
+            className="bg-red-900 cursor-pointer hover:bg-slate-700 px-5 py-7 border-1 rounded-full"
+            onClick={handleReset}
           >
             Reset
           </button>
